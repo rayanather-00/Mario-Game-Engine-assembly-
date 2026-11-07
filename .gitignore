@@ -1,0 +1,23 @@
+# Compiled NASM output
+*.com
+*.exe
+*.bin
+*.o
+*.obj
+
+# Generated assembler files
+*.lst
+*.map
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Windows/macOS generated files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Build folder
+/build/
