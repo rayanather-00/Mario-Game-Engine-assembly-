@@ -1,0 +1,138 @@
+UPDATE_HORIZONTAL: ; this function check whether moving left or right
+    PUSH AX
+    PUSH BX
+    CMP BYTE [LEFT_KEY], 1 ; CHECK LEFT KEY
+    JE MOVE_LEFT
+
+    CMP BYTE [RIGHT_KEY], 1 ; CHECK RIGHT KEY
+    JE MOVE_RIGHT
+    
+    JMP APPLY_FRICTION ; NO KEY PRESSED, APPLY FRICTION
+
+
+MOVE_LEFT:
+    MOV BYTE [FACING_DIRECTION], 0
+    
+    CMP WORD [VELOCITY_X], 0 ; CHECK IF MARIO WAS MOVING RIGHT
+    JG BRAKE_RIGHT ;if moving right will add -ve accelearation
+
+    MOV AX, [VELOCITY_X] ; if was alredy on the left so we ACCELERATE LEFT
+    SUB AX, WALK_ACCEL
+    MOV [VELOCITY_X], AX
+    CALL CHECK_LEFT_LIMIT
+    JMP END_HORIZONTAL
+
+
+
+MOVE_RIGHT: ;this working same as above one jsut chaneged it for the right moevement
+    MOV BYTE [FACING_DIRECTION], 1
+    CMP WORD [VELOCITY_X], 0
+    JL BRAKE_LEFT
+
+    MOV AX, [VELOCITY_X]
+    ADD AX, WALK_ACCEL
+    MOV [VELOCITY_X], AX
+    CALL CHECK_LEFT_LIMIT
+    JMP END_HORIZONTAL  
+
+BRAKE_RIGHT: ; this function work when like we were moving right and we cliked left key THEN
+             ; it will slow us down 
+    MOV AX, [VELOCITY_X]
+    ADD AX, BRAKE_ACCEL
+    CMP AX, 0
+    JG SAVE_BRAKE_RIGHT
+    MOV AX, 0
+
+SAVE_BRAKE_RIGHT:
+    MOV [VELOCITY_X], AX
+    JMP END_HORIZONTAL
+
+
+BRAKE_LEFT: ;same like the above jsut doing for the left side
+    MOV AX, [VELOCITY_X]
+    SUB AX, BRAKE_ACCEL
+    CMP AX, 0
+    JL SAVE_BRAKE_LEFT
+    MOV AX, 0
+
+SAVE_BRAKE_LEFT:
+    MOV [VELOCITY_X], AX
+    JMP END_HORIZONTAL
+
+
+APPLY_FRICTION: ; do i really have to explin this ? i am lazy to write this 
+    MOV AX, [VELOCITY_X]
+    CMP AX, 0
+    JE END_HORIZONTAL
+    JG FRICTION_RIGHT
+
+    ; MARIO MOVING LEFT
+    ADD AX, FRICTION
+
+    CMP AX, 0
+    JL SAVE_FRICTION
+
+    MOV AX, 0
+    JMP SAVE_FRICTION
+
+
+FRICTION_RIGHT:
+
+    ; MARIO MOVING RIGHT
+    SUB AX, FRICTION
+
+    CMP AX, 0
+    JG SAVE_FRICTION
+
+    MOV AX, 0
+
+
+SAVE_FRICTION:
+
+    MOV [VELOCITY_X], AX
+    JMP END_HORIZONTAL
+
+
+AIR_CONTROL: ;in air contorl
+
+    PUSH AX
+    PUSH BX
+    CMP BYTE [LEFT_KEY], 1 ; CHECK LEFT KEY
+    JE AIR_MOVE_LEFT
+    CMP BYTE [RIGHT_KEY], 1 ; CHECK RIGHT KEY
+    JE AIR_MOVE_RIGHT
+    JMP END_AIR_CONTROL
+
+
+AIR_MOVE_LEFT: ; 
+    MOV BYTE [FACING_DIRECTION], 0
+    CMP WORD [VELOCITY_X], 0 ; BRAKE IF MOVING RIGHT
+    JG BRAKE_RIGHT
+
+    MOV AX, [VELOCITY_X]  ; ACCELERATE LEFT
+    SUB AX, WALK_ACCEL
+    MOV [VELOCITY_X], AX
+    CALL CHECK_LEFT_LIMIT
+    JMP END_HORIZONTAL
+
+
+AIR_MOVE_RIGHT: ;(same for above jsut for the right side)
+    MOV BYTE [FACING_DIRECTION], 1
+    CMP WORD [VELOCITY_X], 0
+    JL BRAKE_LEFT
+
+    MOV AX, [VELOCITY_X]
+    ADD AX, WALK_ACCEL
+    MOV [VELOCITY_X], AX
+    JMP CHECK_RIGHT_LIMIT
+
+
+END_AIR_CONTROL:
+    POP BX
+    POP AX
+    RET
+
+END_HORIZONTAL:
+    POP BX
+    POP AX
+    RET
