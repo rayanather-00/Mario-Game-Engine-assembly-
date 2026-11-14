@@ -1,20 +1,12 @@
 ORG 100H
-JMP PROGRAMSS
+JMP START
+%include "constant.asm"
 %include "data.asm"
-%include "assets.asm"
-%include "graphics.asm"
-%include "level.asm"
-%include "keyboard.asm"
-%include "timer.asm"
 %include "player.asm"
-%include "enemies.asm"
-%include "collision.asm"
-%include "game.asm"
-%include "constant.inc"
 
 
+START:
 
-PROGRAMSS:
 
 
 
