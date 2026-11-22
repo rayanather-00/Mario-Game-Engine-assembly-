@@ -1,10 +1,42 @@
 org 0x0100
-
+jmp start
 section .data.                                                                  ;pre defined section by assembler for data
+
+
+   ; tiles
+    %include "brick.inc"
+    %include "brksnw.inc"
+    %include "coin.inc"
+    %include "ques.inc"
+    %include "ques_snw.inc"
+
+    ;characters
+    %include "mario.inc"
+    %include "mariospr.inc"
+    %include "santa.inc"
+    %include "santaspr.inc"
+    %include "bat.inc"
+    %include "bat_j.inc"
+    %include "dino.inc"
+    %include "dino_elf.inc"
+    %include "dino_cry.inc"
+    %include "dinoec.inc"
+    %include "turtle.inc"
+    %include "trtlsnw.inc"
+    %include "shroom.inc"
+    %include "shrmelf.inc"
+    %include "shell.inc"
+    %include "shellsnw.inc"
+
+
+
+
+
+
     map: db 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1          ;to be extended to 60 memebers, this prints the dirt and tells where gaps
 
 section .text.                                                                  ;pre defined section by assembler for code
-
+start:
 mov ax, 0013h                                                                   ;vga mode
 int 10h
 
@@ -15,7 +47,7 @@ color_palettes:
 
     sky_palette:
         mov dx, 03C8h                
-        mov al, 1                                                                ; palette index 1 reserved for our sky color
+        mov al, 250                                                                ; palette index 1 reserved for our sky color
         out dx, al
 
         color_sky:                                                               ;this is for overwriting palette index 1 for it to be color code #BAFFEF
@@ -29,7 +61,7 @@ color_palettes:
 
     dirt_palette:
        mov dx, 03C8h
-       mov al, 2
+       mov al, 251
        out dx, al
 
        color_dirt:                                                               ;color #411000 
@@ -43,7 +75,7 @@ color_palettes:
 
     grass_palette:
         mov dx, 03C8h
-        mov al, 3
+        mov al, 252
         out dx, al
 
         color_grass:                                                            ;color #22ff42
@@ -69,8 +101,8 @@ sky:
         cld                          
         xor di, di                                                              ;ensures di is 0, note that its faster than mov, use it
         mov cx, 64000                
-        mov al, 1                   
-        rep stosb                                                               ;what this does is take the color in al and apply it cx many times using di address which is 0 and cx is the entire window hence full background colored
+        mov al, 250                   
+        rep stosb                                                               ;what this does is take the color in al and apply it cx many times using di address which is 250 and cx is the entire window hence full background colored
 
 map_check:
     mov si, map
@@ -91,11 +123,7 @@ map_check:
         add bx, 16
         loop map_loop 
 
-mario:
-    mov bx, 32                    
-    mov dx, 160                     
-    mov al, 4                       
-    call draw_mario
+
      
 terminate:
     mov ah, 00h
@@ -126,7 +154,7 @@ functions:
         mov di, ax
 
         mov dx, 16
-        mov al, 2                                                                ;al contains the color of dirt
+        mov al, 251                                                                ;al contains the color of dirt
 
         dirt_loop:
             mov cx, 16
@@ -144,35 +172,53 @@ functions:
             ret
     
 
-    draw_mario:                                                                 ;as you can see this fucntion is the same as dirt loop except color, this is just a placeholder sicne later we actually have to make mario block
-        push ax
-        push bx
-        push cx
+draw_sprite:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    push bp
+
+    cld                         
+    row_loop:
+    
         push dx
-        push di
-
-        mov ax, 320                                            
-        mul dx
-        add ax, bx
+        mov ax, 320
+        mul dx                      ;320 * Y
+        add ax, bx                  
         mov di, ax
+        pop dx
 
-        mov dx, 16                                           
-        mov al, 4                                               
+        push cx                     ; save sprite width
 
-        mario_loop:
-            mov cx, 16                                              
-            rep stosb                                              
-            add di, 304                                           
+    col_loop:
+        lodsb                       
+        test al, al                 
+        jz skip_pixel
+        mov [es:di], al             
 
-            dec dx
-            jnz mario_loop
+    skip_pixel:
+        inc di
+        loop col_loop
 
-            pop di
-            pop dx
-            pop cx
-            pop bx
-            pop ax
-            ret
+        pop cx                      ;restore sprite width
+        inc dx                      ;move down to nextrow
+        dec bp                      ;remaining rows
+        jnz row_loop
+
+        pop bp
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        ret
+
+
+
 
     draw_grass:
         push ax
@@ -187,7 +233,7 @@ functions:
         mov di, ax
 
         mov dx, 8
-        mov al, 3
+        mov al, 252
 
         grass_loop:
             mov cx, 16                                              
