@@ -1,5 +1,3 @@
-org 0x0100
-jmp start
 section .data.                                                                  ;pre defined section by assembler for data
    ;tiles
     %include "brick.inc"
@@ -51,91 +49,6 @@ section .data.                                                                  
     frame_segment: dw 0
     last_tick: dw 0
     cam_col: dw 0
-    mario_x:        dw 32
-    mario_y:        dw 168
-
-
-section .text.                                                                  ;pre defined section by assembler for code
-start:
-    call make_segment
-    mov ax, 0013h
-    int 10h
-    call sky_palette
-    call map_reset
-
-frame_loop:
-    call wait_tick
-
-    mov ax, [frame_segment]
-    mov es, ax
-    xor di, di
-    mov cx, 32000
-    mov ah, 250
-    mov al, 250
-    cld
-    rep stosw
-
-    push word [cam_col]
-    call draw_map
-    add sp, 2
-
-    mov si, mario
-    mov bx, [mario_x]
-    mov dx, [mario_y]
-    call draw_16x16
-
-    push ds
-    mov ax, [frame_segment]
-    mov ds, ax
-    xor si, si
-    mov ax, 0A000h
-    mov es, ax
-    xor di, di
-    mov cx, 32000
-    cld
-    rep movsw
-    pop ds
-
-    mov ah, 01h
-    int 16h
-    jz frame_loop
-    mov ah, 00h
-    int 16h
-    cmp al, 27
-    je terminate
-    cmp ah, 4dh
-    jne .chk_left
-    cmp word [cam_col], 40
-    jae frame_loop
-    inc word [cam_col]
-    jmp frame_loop
-.chk_left:
-    cmp ah, 4bh
-    jne frame_loop
-    cmp word [cam_col], 0
-    je frame_loop
-    dec word [cam_col]
-    jmp frame_loop
-
-
-                          
-
-
-;--------------------------------------------------------------------------------
-;--------------------------------------------------------------------------------
-     
-terminate:
-
-    mov ah, 00h
-    int 16h
-
-    mov ax, 0003h
-    int 10h
-
-    mov ax, 4C00h
-    int 21h
-
-
 ;--------------------------------------------------------------------------------
 ;--------------------------------------------------------------------------------
 
